@@ -67,5 +67,11 @@ class TimedRotatingFileHandler(Handler):
             # permission denied or file not found
             if to_gzip_path.suffix == ".gz":
                 continue
-            subprocess.run(["gzip", to_gzip_path])
+            self.base_dir.joinpath(self.filename).touch()
+            cmds = ["flock",
+                    "--nonblock",
+                    self.base_dir.joinpath(self.filename),
+                    "--command",
+                    f"gzip {to_gzip_path}"]
+            subprocess.run(cmds)
         self.stream = self.init_stream()
