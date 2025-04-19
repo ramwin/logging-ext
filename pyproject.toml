@@ -27,9 +27,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/ramwin/logging-ext2#readme"
-Issues = "https://github.com/ramwin/logging-ext2/issues"
-Source = "https://github.com/ramwin/logging-ext2"
+Documentation = "https://github.com/ramwin/logging-ext#readme"
+Issues = "https://github.com/ramwin/logging-ext/issues"
+Source = "https://github.com/ramwin/logging-ext"
 
 [tool.hatch.version]
 path = "src/logging_ext2/__about__.py"
