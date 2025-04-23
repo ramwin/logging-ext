@@ -67,8 +67,11 @@ class TimedRotatingFileHandler(Handler):
         for to_gzip_path in paths[self.flat_keep:self.max_keep]:
             # here use the system gzip command to ignore exceptions like
             # permission denied or file not found
-            if not to_gzip_path.stat().st_size:
-                to_gzip_path.unlink(missing_ok=True)
+            try:
+                if not to_gzip_path.stat().st_size:
+                    to_gzip_path.unlink(missing_ok=True)
+                    continue
+            except FileNotFoundError:
                 continue
             if to_gzip_path.suffix == ".gz":
                 continue
