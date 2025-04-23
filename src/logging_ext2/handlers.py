@@ -24,6 +24,7 @@ class TimedRotatingFileHandler(Handler):
             max_keep: how many files will the rotation keep
             flat_keep: how many files will stay in text mod, the other (max_keep-flat_keep) will be compressed using gzip
         """
+        self.filepath: Path = None
         self.filename = Path(filename).name
         self.base_dir = Path(filename).parent
         self.datetime_formatter = datetime_formatter
@@ -34,9 +35,9 @@ class TimedRotatingFileHandler(Handler):
         super().__init__(level)
 
     def init_stream(self):
-        filepath = self.base_dir.joinpath(
+        self.filepath = self.base_dir.joinpath(
                 f"{self.filename}.{self.get_time_str()}")
-        return open(filepath, "a")
+        return open(self.filepath, "a")
 
     def get_time_str(self) -> str:
         return datetime.datetime.now().strftime(self.datetime_formatter)
@@ -52,7 +53,8 @@ class TimedRotatingFileHandler(Handler):
         return new_time_str != self.current_time_str
 
     def do_rollover(self):
-        self.stream.close()
+        if self.filepath.exists():
+            self.stream.close()
         paths: List[Path] = [
                 i
                 for i in self.base_dir.iterdir()
@@ -65,6 +67,9 @@ class TimedRotatingFileHandler(Handler):
         for to_gzip_path in paths[self.flat_keep:self.max_keep]:
             # here use the system gzip command to ignore exceptions like
             # permission denied or file not found
+            if not to_gzip_path.stat().st_size:
+                to_gzip_path.unlink(missing_ok=True)
+                continue
             if to_gzip_path.suffix == ".gz":
                 continue
             self.base_dir.joinpath(self.filename).touch()
