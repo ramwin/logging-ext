@@ -5,6 +5,9 @@
 
 import datetime
 import subprocess
+import time
+
+from filelock import FileLock
 
 from logging import Handler, NOTSET
 from pathlib import Path
@@ -75,11 +78,16 @@ class TimedRotatingFileHandler(Handler):
                 continue
             if to_gzip_path.suffix == ".gz":
                 continue
-            self.base_dir.joinpath(self.filename).touch()
-            cmds = ["flock",
-                    "--nonblock",
-                    self.base_dir.joinpath(self.filename),
-                    "--command",
-                    f"gzip {to_gzip_path}"]
-            subprocess.run(cmds)
+            lock_path = self.base_dir.joinpath(self.filename)
+            lock_path.touch()
+            with FileLock(lock_path, timeout=10):
+                target_file = to_gzip_path.parent.joinpath(
+                        to_gzip_path.name + ".gz"
+                )
+                if target_file.exists():
+                    target_file.rename(target_file.parent.joinpath(
+                        target_file.stem + "_" + str(time.time())
+                    ).with_suffix(".gz"))
+                cmds = ["gzip", to_gzip_path]
+                subprocess.run(cmds)
         self.stream = self.init_stream()

@@ -15,7 +15,7 @@ class Test(unittest.TestCase):
         handlera = TimedRotatingFileHandler(
             filename="tests/info.log",
             datetime_formatter="%Y-%m-%d_%H:%M:%S",
-            max_keep=5, flat_keep=2)
+            max_keep=20, flat_keep=2)
         loggera.addHandler(logging.StreamHandler())
         loggera.addHandler(handlera)
         loggera.setLevel(logging.INFO)
@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
         loggerb.addHandler(TimedRotatingFileHandler(
             filename="tests/info.log",
             datetime_formatter="%Y-%m-%d_%H:%M:%S",
-            max_keep=5, flat_keep=2))
+            max_keep=20, flat_keep=2))
         loggerb.addHandler(logging.StreamHandler())
         loggerb.setLevel(logging.INFO)
 
