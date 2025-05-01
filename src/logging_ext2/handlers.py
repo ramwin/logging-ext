@@ -78,7 +78,7 @@ class TimedRotatingFileHandler(Handler):
                 continue
             if to_gzip_path.suffix == ".gz":
                 continue
-            lock_path = self.base_dir.joinpath(self.filename)
+            lock_path = self.base_dir.joinpath(".lock." + self.filename)
             lock_path.touch()
             with FileLock(lock_path, timeout=10):
                 target_file = to_gzip_path.parent.joinpath(
