@@ -58,6 +58,7 @@ class TimedRotatingFileHandler(Handler):
     def do_rollover(self):
         if self.filepath.exists():
             self.stream.close()
+        self.stream = self.init_stream()
         paths: List[Path] = [
                 i
                 for i in self.base_dir.iterdir()
@@ -66,10 +67,14 @@ class TimedRotatingFileHandler(Handler):
         paths.sort(key=lambda x: x.name, reverse=True)
         to_delete: Path
         for to_delete in paths[self.max_keep:]:
+            if to_delete == self.filepath:
+                continue
             to_delete.unlink(missing_ok=True)
         for to_gzip_path in paths[self.flat_keep:self.max_keep]:
             # here use the system gzip command to ignore exceptions like
             # permission denied or file not found
+            if to_gzip_path == self.filepath:
+                continue
             try:
                 if not to_gzip_path.stat().st_size:
                     to_gzip_path.unlink(missing_ok=True)
@@ -90,4 +95,3 @@ class TimedRotatingFileHandler(Handler):
                     ).with_suffix(".gz"))
                 cmds = ["gzip", to_gzip_path]
                 subprocess.run(cmds)
-        self.stream = self.init_stream()
