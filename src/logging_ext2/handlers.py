@@ -6,6 +6,7 @@
 import datetime
 import subprocess
 import time
+from typing import List
 
 from filelock import FileLock
 
@@ -21,18 +22,19 @@ class TimedRotatingFileHandler(Handler):
     """
 
     def __init__(self, level=NOTSET, filename="log.log",
-                 datetime_formatter="%Y-%m-%d", max_keep=10, flat_keep=2):
+                 datetime_formatter="%Y-%m-%d", max_keep=10, flat_keep=2) -> None:
         """
         params:
             max_keep: how many files will the rotation keep
             flat_keep: how many files will stay in text mod, the other (max_keep-flat_keep) will be compressed using gzip
         """
-        self.filepath: Path = None
+        self.filepath: Path = None  # type: ignore[assignment]
         self.filename = Path(filename).name
         self.base_dir = Path(filename).parent
         self.datetime_formatter = datetime_formatter
         self.current_time_str = self.get_time_str()
         self.stream = self.init_stream()
+        assert self.filepath
         self.max_keep = max_keep
         self.flat_keep = flat_keep
         super().__init__(level)
@@ -55,7 +57,7 @@ class TimedRotatingFileHandler(Handler):
         new_time_str = self.get_time_str()
         return new_time_str != self.current_time_str
 
-    def do_rollover(self):
+    def do_rollover(self) -> None:
         if self.filepath.exists():
             self.stream.close()
         self.stream = self.init_stream()
@@ -70,6 +72,11 @@ class TimedRotatingFileHandler(Handler):
             if to_delete == self.filepath:
                 continue
             to_delete.unlink(missing_ok=True)
+
+    def gzip_file(self, paths) -> None:
+        """
+        TODO use async function to gzip file
+        """
         for to_gzip_path in paths[self.flat_keep:self.max_keep]:
             # here use the system gzip command to ignore exceptions like
             # permission denied or file not found
